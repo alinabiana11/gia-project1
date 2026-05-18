@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Вход - Пассажирам.РФ</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Подключаем Swiper для слайдера -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Слайдер с картинками -->
+        <div class="swiper mySwiper">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide"><img src="https://via.placeholder.com/390x200/3498db/white?text=Автобус" alt="Автобус"></div>
+                <div class="swiper-slide"><img src="https://via.placeholder.com/390x200/2ecc71/white?text=Электробус" alt="Электробус"></div>
+                <div class="swiper-slide"><img src="https://via.placeholder.com/390x200/e74c3c/white?text=Трамвай" alt="Трамвай"></div>
+            </div>
+            <div class="swiper-pagination"></div>
+        </div>
+
+        <h1>Вход в систему</h1>
+        <h2>Пассажирам.РФ</h2>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Логин:</label>
+                <input type="text" id="login" placeholder="Введите логин" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Пароль:</label>
+                <input type="password" id="password" placeholder="Введите пароль" required>
+            </div>
+            
+            <button type="submit" class="btn">Войти</button>
+            <p class="register-link">Еще не зарегистрированы? <a href="register.html">Регистрация</a></p>
+        </form>
+        
+        <div id="errorMessage" class="error-message"></div>
+    </div>
+
+    <script>
+        // Инициализация слайдера
+        var swiper = new Swiper('.mySwiper', {
+            pagination: { el: '.swiper-pagination' },
+            autoplay: { delay: 3000 },
+            loop: true
+        });
+
+        // Обработка входа
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const login = document.getElementById('login').value;
+            const password = document.getElementById('password').value;
+            
+            // Проверка на админа
+            if(login === 'Admin26' && password === 'Demo20') {
+                localStorage.setItem('currentUser', JSON.stringify({login: login, isAdmin: true}));
+                window.location.href = 'admin.html';
+                return;
+            }
+            
+            // Проверка обычного пользователя
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const user = users.find(u => u.login === login && u.password === password);
+            
+            if(user) {
+                localStorage.setItem('currentUser', JSON.stringify({login: user.login, isAdmin: false, userData: user}));
+                window.location.href = 'profile.html';
+            } else {
+                document.getElementById('errorMessage').textContent = 'Неверный логин или пароль!';
+            }
+        });
+    </script>
+</body>
+</html>
