@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Панель администратора - Пассажирам.РФ</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Панель администратора</h1>
+        
+        <div id="applicationsContainer"></div>
+        
+        <button onclick="logout()" class="btn btn-logout">Выйти</button>
+    </div>
+
+    <script>
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        
+        if(!currentUser || !currentUser.isAdmin) {
+            window.location.href = 'index.html';
+        }
+        
+        function loadApplications() {
+            const applications = JSON.parse(localStorage.getItem('applications') || '[]');
+            
+            if(applications.length === 0) {
+                document.getElementById('applicationsContainer').innerHTML = '<p>Нет заявок</p>';
+                return;
+            }
+            
+            document.getElementById('applicationsContainer').innerHTML = applications.map(app => `
+                <div class="application-card admin-card">
+                    <p><strong>Заявка #${app.id}</strong></p>
+                    <p><strong>Пользователь:</strong> ${app.userName} (${app.userLogin})</p>
+                    <p><strong>Транспорт:</strong> ${app.transport}</p>
+                    <p><strong>Дата начала:</strong> ${app.startDate}</p>
+                    <p><strong>Оплата:</strong> ${app.paymentMethod}</p>
+                    <p><strong>Текущий статус:</strong> <span class="status-${app.status}">${app.status}</span></p>
+                    
+                    <div class="status-buttons">
+                        <button onclick="changeStatus(${app.id}, 'Новая')" class="btn-status status-new">Новая</button>
+                        <button onclick="changeStatus(${app.id}, 'Идет обучение')" class="btn-status status-learning">Идет обучение</button>
+                        <button onclick="changeStatus(${app.id}, 'Обучение завершено')" class="btn-status status-completed">Обучение завершено</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function changeStatus(appId, newStatus) {
+            const applications = JSON.parse(localStorage.getItem('applications') || '[]');
+            const appIndex = applications.findIndex(app => app.id === appId);
+            
+            if(appIndex !== -1) {
+                applications[appIndex].status = newStatus;
+                localStorage.setItem('applications', JSON.stringify(applications));
+                loadApplications();
+                alert(`Статус заявки #${appId} изменен на "${newStatus}"`);
+            }
+        }
+        
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = 'index.html';
+        }
+        
+        loadApplications();
+    </script>
+</body>
+</html>
