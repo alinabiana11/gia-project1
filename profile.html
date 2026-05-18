@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Личный кабинет - Пассажирам.РФ</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Личный кабинет</h1>
+        
+        <div id="userInfo"></div>
+        
+        <h2>Мои заявки</h2>
+        <div id="applicationsList"></div>
+        
+        <h2>Оставить отзыв</h2>
+        <form id="reviewForm">
+            <textarea id="reviewText" rows="3" placeholder="Напишите ваш отзыв..."></textarea>
+            <button type="submit" class="btn">Отправить отзыв</button>
+        </form>
+        
+        <h2>Отзывы пользователей</h2>
+        <div id="reviewsList"></div>
+        
+        <button onclick="logout()" class="btn btn-logout">Выйти</button>
+        <br>
+        <a href="application.html" class="btn btn-primary">+ Новая заявка</a>
+    </div>
+
+    <script>
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        
+        if(!currentUser || currentUser.isAdmin) {
+            window.location.href = 'index.html';
+        }
+        
+        // Отображение информации о пользователе
+        document.getElementById('userInfo').innerHTML = `
+            <div class="user-card">
+                <h3>${currentUser.userData.fullname}</h3>
+                <p>Email: ${currentUser.userData.email}</p>
+                <p>Телефон: ${currentUser.userData.phone}</p>
+            </div>
+        `;
+        
+        // Отображение заявок
+        function loadApplications() {
+            const applications = JSON.parse(localStorage.getItem('applications') || '[]');
+            const userApps = applications.filter(app => app.userLogin === currentUser.login);
+            
+            if(userApps.length === 0) {
+                document.getElementById('applicationsList').innerHTML = '<p>У вас пока нет заявок</p>';
+                return;
+            }
+            
+            document.getElementById('applicationsList').innerHTML = userApps.map(app => `
+                <div class="application-card">
+                    <p><strong>Транспорт:</strong> ${app.transport}</p>
+                    <p><strong>Дата начала:</strong> ${app.startDate}</p>
+                    <p><strong>Способ оплаты:</strong> ${app.paymentMethod}</p>
+                    <p><strong>Статус:</strong> <span class="status-${app.status}">${app.status}</span></p>
+                </div>
+            `).join('');
+        }
+        
+        // Загрузка отзывов
+        function loadReviews() {
+            const reviews = JSON.parse(localStorage.getItem('reviews') || '[]');
+            document.getElementById('reviewsList').innerHTML = reviews.map(rev => `
+                <div class="review-card">
+                    <p><strong>${rev.userName}</strong> (${rev.date})</p>
+                    <p>${rev.text}</p>
+                </div>
+            `).join('');
+        }
+        
+        // Отправка отзыва
+        document.getElementById('reviewForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const text = document.getElementById('reviewText').value;
+            
+            if(text.trim()) {
+                const reviews = JSON.parse(localStorage.getItem('reviews') || '[]');
+                reviews.unshift({
+                    userName: currentUser.userData.fullname,
+                    text: text,
+                    date: new Date().toLocaleDateString()
+                });
+                localStorage.setItem('reviews', JSON.stringify(reviews));
+                document.getElementById('reviewText').value = '';
+                loadReviews();
+                alert('Отзыв отправлен!');
+            }
+        });
+        
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = 'index.html';
+        }
+        
+        loadApplications();
+        loadReviews();
+    </script>
+</body>
+</html>
